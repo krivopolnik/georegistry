@@ -17,7 +17,6 @@ public class FileUnzipService {
 
     public void unzipFile(Path zipFilePath, Path destDir) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFilePath))) {
-            // ПОчему во время теста мне сюда(zipEntry) приходит null?
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
                 Path newFilePath = destDir.resolve(zipEntry.getName());
