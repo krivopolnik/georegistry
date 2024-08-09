@@ -2,80 +2,66 @@ package com.borschevski.georegistry.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class FileUnzipServiceTest {
+class FileUnzipServiceTest {
 
     private FileUnzipService fileUnzipService;
 
     @BeforeEach
-    public void setup() {
+    void setUp() {
         fileUnzipService = new FileUnzipService();
     }
 
     @Test
-    public void testUnzipFileSuccess() throws Exception {
-        Path mockZipPath = Mockito.mock(Path.class);
-        Path mockDestDir = Mockito.mock(Path.class);
-        Path mockNewFilePath = Mockito.mock(Path.class);
+    void testUnzipFileSuccess(@TempDir Path tempDir) throws IOException {
+        // Setup a sample zip file in memory
+        Path zipFilePath = tempDir.resolve("test.zip");
+        Path fileInZipPath = Paths.get("test.txt");
+        byte[] fileContent = "Hello, world!".getBytes();
 
-        // Create a test ZIP file in memory
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(byteArrayOutputStream)) {
-            zos.putNextEntry(new ZipEntry("testFile.txt"));
-            zos.write("test content".getBytes());
+        // Create a zip file with one text file inside
+        try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipFilePath))) {
+            ZipEntry entry = new ZipEntry(fileInZipPath.toString());
+            zos.putNextEntry(entry);
+            zos.write(fileContent);
             zos.closeEntry();
         }
-        byte[] zipBytes = byteArrayOutputStream.toByteArray();
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(zipBytes);
 
-        try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
-            // Mocking Files.newInputStream to return a ByteArrayInputStream
-            mockedFiles.when(() -> Files.newInputStream(eq(mockZipPath))).thenReturn(byteArrayInputStream);
+        // Destination directory
+        Path destDir = tempDir.resolve("output");
+        Files.createDirectories(destDir);
 
-            // Mocking Files.createDirectories and Files.copy
-            mockedFiles.when(() -> Files.createDirectories(any(Path.class))).thenReturn(mockNewFilePath);
-            mockedFiles.when(() -> Files.copy(any(InputStream.class), any(Path.class), eq(StandardCopyOption.REPLACE_EXISTING))).thenReturn(1L);
+        // Execute the unzip method
+        fileUnzipService.unzipFile(zipFilePath, destDir);
 
-            // Execute the unzipFile method
-            fileUnzipService.unzipFile(mockZipPath, mockDestDir);
-
-            // Verify that the input stream is opened and files are created/copied
-            mockedFiles.verify(() -> Files.newInputStream(eq(mockZipPath)));
-            mockedFiles.verify(() -> Files.createDirectories(any(Path.class)));
-            mockedFiles.verify(() -> Files.copy(any(InputStream.class), eq(mockNewFilePath), eq(StandardCopyOption.REPLACE_EXISTING)));
-        }
+        // Verify that the file was unzipped correctly
+        Path unzippedFilePath = destDir.resolve(fileInZipPath);
+        assertTrue(Files.exists(unzippedFilePath), "File should have been unzipped");
+        assertTrue(Files.isRegularFile(unzippedFilePath), "Unzipped file should be a regular file");
+        assertEquals(Files.readAllBytes(unzippedFilePath).length, fileContent.length, "File content should match");
     }
 
     @Test
-    public void testUnzipFileIOException() throws Exception {
-        Path mockZipPath = Mockito.mock(Path.class);
-        Path mockDestDir = Mockito.mock(Path.class);
+    void testUnzipFileWithIOException(@TempDir Path tempDir) throws IOException {
+        Path zipFilePath = tempDir.resolve("test.zip");
+        Path destDir = tempDir.resolve("output");
 
+        // Create a mock static method Files.newInputStream so that it throws IOException
         try (MockedStatic<Files> mockedFiles = mockStatic(Files.class)) {
-            mockedFiles.when(() -> Files.newInputStream(any(Path.class))).thenThrow(new IOException("Failed to open stream"));
+            mockedFiles.when(() -> Files.newInputStream(zipFilePath)).thenThrow(new IOException("Failed to open stream"));
 
-            // Verify that IOException is thrown
-            assertThrows(IOException.class, () -> fileUnzipService.unzipFile(mockZipPath, mockDestDir));
+            // Check that our service throws IOException when calling unzipFile
+            assertThrows(IOException.class, () -> fileUnzipService.unzipFile(zipFilePath, destDir));
         }
     }
 }
