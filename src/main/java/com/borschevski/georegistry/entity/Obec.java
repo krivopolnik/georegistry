@@ -9,5 +9,19 @@ public class Obec {
     private int kod;
     private String nazev;
 
-    // Getters and Setters
+    public int getKod() {
+        return kod;
+    }
+
+    public void setKod(int kod) {
+        this.kod = kod;
+    }
+
+    public String getNazev() {
+        return nazev;
+    }
+
+    public void setNazev(String nazev) {
+        this.nazev = nazev;
+    }
 }

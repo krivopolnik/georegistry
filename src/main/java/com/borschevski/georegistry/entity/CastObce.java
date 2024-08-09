@@ -10,5 +10,27 @@ public class CastObce {
     private String nazev;
     private int kodObec;
 
-    // Getters and Setters
+    public int getKod() {
+        return kod;
+    }
+
+    public void setKod(int kod) {
+        this.kod = kod;
+    }
+
+    public String getNazev() {
+        return nazev;
+    }
+
+    public void setNazev(String nazev) {
+        this.nazev = nazev;
+    }
+
+    public int getKodObec() {
+        return kodObec;
+    }
+
+    public void setKodObec(int kodObec) {
+        this.kodObec = kodObec;
+    }
 }

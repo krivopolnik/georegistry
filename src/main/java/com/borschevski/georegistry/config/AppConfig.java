@@ -18,7 +18,6 @@ public class AppConfig {
     @Bean
     public Jaxb2Marshaller marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        // Указание пакета, где находятся сгенерированные классы для JAXB
         marshaller.setPackagesToScan("com.borschevski.georegistry.model");
         return marshaller;
     }
