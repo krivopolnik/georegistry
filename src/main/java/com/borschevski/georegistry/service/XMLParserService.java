@@ -43,14 +43,40 @@ public class XMLParserService {
 
     private void parseAndSaveObec(NodeList obecList) {
         log.debug("Parsing and saving 'Obec' elements.");
+
         for (int i = 0; i < obecList.getLength(); i++) {
             Element obecElement = (Element) obecList.item(i);
-            String kod = obecElement.getElementsByTagName("vf:Kod").item(0).getTextContent();
-            String nazev = obecElement.getElementsByTagName("vf:Nazev").item(0).getTextContent();
+
+            NodeList kodNodeList = obecElement.getElementsByTagName("vf:Kod");
+            NodeList nazevNodeList = obecElement.getElementsByTagName("vf:Nazev");
+
+            if (kodNodeList == null || kodNodeList.getLength() == 0) {
+                log.warn("Element <vf:Kod> not found in <vf:Obec> at index {}", i);
+                continue;
+            }
+
+            if (nazevNodeList == null || nazevNodeList.getLength() == 0) {
+                log.warn("Element <vf:Nazev> not found in <vf:Obec> at index {}", i);
+                continue;
+            }
+
+            String kod = kodNodeList.item(0) != null ? kodNodeList.item(0).getTextContent() : null;
+            String nazev = nazevNodeList.item(0) != null ? nazevNodeList.item(0).getTextContent() : null;
+
+            if (kod == null || nazev == null) {
+                log.error("Failed to parse 'Obec' element at index {}. Kod or Nazev is null.", i);
+                continue;
+            }
+
             log.info("Saving 'Obec' - Kod: {}, Nazev: {}", kod, nazev);
-            // Save obec to the database
+
+//            Obec obec = new Obec();
+//            obec.setKod(Integer.parseInt(kod));
+//            obec.setNazev(nazev);
+//            databaseService.saveObec(obec);
         }
     }
+
 
     private void parseAndSaveCastObce(NodeList castObceList) {
         log.debug("Parsing and saving 'CastObce' elements.");

@@ -32,7 +32,7 @@ public class FileDownloadService {
         log.info("Starting download of file from URL: {}", urlString);
 
         try {
-            URL url = urlFactory.createURL(urlString); // Use URLFactory to create URL
+            URL url = urlFactory.createURL(urlString);
             try (InputStream in = url.openStream()) {
                 Files.copy(in, destPath, StandardCopyOption.REPLACE_EXISTING);
                 log.info("File successfully downloaded and saved to {}", destPath);

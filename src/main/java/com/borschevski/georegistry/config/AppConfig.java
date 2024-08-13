@@ -24,6 +24,12 @@ public class AppConfig {
 
     @Bean
     public URLFactory urlFactory() {
-        return spec -> null;
+        return spec -> {
+            try {
+                return new URL(spec);
+            } catch (MalformedURLException e) {
+                throw new IllegalArgumentException("Invalid URL: " + spec, e);
+            }
+        };
     }
 }

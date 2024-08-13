@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.UUID;
 
 @Slf4j
@@ -66,15 +67,14 @@ public class DataController {
             return "Failed to download and parse data: " + e.getMessage();
         } finally {
             try {
-                Files.deleteIfExists(zipPath);
                 Files.walk(unzipDir)
+                        .sorted(Comparator.reverseOrder())
                         .map(Path::toFile)
                         .forEach(file -> {
                             if (!file.delete()) {
                                 log.warn("Failed to delete file: {}", file);
                             }
                         });
-                Files.deleteIfExists(unzipDir);
             } catch (IOException e) {
                 log.error("Failed to clean up temporary files: {}", e.getMessage(), e);
             }
