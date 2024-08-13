@@ -40,9 +40,10 @@ public class DataController {
 
     @GetMapping("/download-and-parse")
     public String downloadAndParse() {
-        String uniqueId = UUID.randomUUID().toString();
-        Path zipPath = Paths.get(downloadPath, "kopidlno-" + uniqueId + ".xml.zip");
-        Path unzipDir = Paths.get(unzipPath, uniqueId);
+        final String uniqueId = UUID.randomUUID().toString();
+        final Path zipPath = Paths.get(downloadPath, "kopidlno-" + uniqueId + ".xml.zip");
+        final Path unzipDir = Paths.get(unzipPath, uniqueId);
+
         try {
             Files.createDirectories(unzipDir);
 
@@ -52,7 +53,7 @@ public class DataController {
             log.info("Unzipping file: {}", zipPath);
             fileUnzipService.unzipFile(zipPath, unzipDir);
 
-            Path xmlFile = Files.list(unzipDir)
+            final Path xmlFile = Files.list(unzipDir)
                     .filter(path -> path.toString().endsWith(".xml"))
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("No XML file found in the unzipped content"));
@@ -61,7 +62,7 @@ public class DataController {
             xmlParsingService.parseAndSave(xmlFile.toFile());
 
             log.info("Data successfully downloaded and parsed.");
-            return "Data successfully downloaded and parsed!";
+            return "Data successfully downloaded and parsed!\n";
         } catch (Exception e) {
             log.error("Failed to download and parse data: {}", e.getMessage(), e);
             return "Failed to download and parse data: " + e.getMessage();

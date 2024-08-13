@@ -11,16 +11,16 @@ import java.net.URL;
 @Configuration
 public class AppConfig {
 
-    /**
-     * Configuring Marshaller to work with XML.
-     * This bin will be used to convert XML to and from Java objects.
-     */
-    @Bean
-    public Jaxb2Marshaller marshaller() {
-        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setPackagesToScan("com.borschevski.georegistry.model");
-        return marshaller;
-    }
+//    /**
+//     * Configuring Marshaller to work with XML.
+//     * This bin will be used to convert XML to and from Java objects.
+//     */
+//    @Bean
+//    public Jaxb2Marshaller marshaller() {
+//        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+//        marshaller.setPackagesToScan("com.borschevski.georegistry.model");
+//        return marshaller;
+//    }
 
     @Bean
     public URLFactory urlFactory() {

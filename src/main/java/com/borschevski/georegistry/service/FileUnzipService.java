@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -19,7 +18,7 @@ public class FileUnzipService {
         try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(zipFilePath))) {
             ZipEntry zipEntry = zis.getNextEntry();
             while (zipEntry != null) {
-                Path newFilePath = destDir.resolve(zipEntry.getName());
+                final Path newFilePath = destDir.resolve(zipEntry.getName());
                 if (zipEntry.isDirectory()) {
                     Files.createDirectories(newFilePath);
                 } else {

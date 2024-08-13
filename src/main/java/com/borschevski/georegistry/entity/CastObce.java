@@ -1,20 +1,20 @@
 package com.borschevski.georegistry.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
+@Table("cast_obce")
 public class CastObce {
     @Id
-    private int kod;
+    private Integer kod;
     private String nazev;
-    private int kodObec;
+    private Integer kodObec;
 
-    public int getKod() {
+    public Integer getKod() {
         return kod;
     }
 
-    public void setKod(int kod) {
+    public void setKodObce(Integer kod) {
         this.kod = kod;
     }
 
@@ -26,11 +26,11 @@ public class CastObce {
         this.nazev = nazev;
     }
 
-    public int getKodObec() {
+    public Integer getKodObec() {
         return kodObec;
     }
 
-    public void setKodObec(int kodObec) {
+    public void setKodObec(Integer kodObec) {
         this.kodObec = kodObec;
     }
 }

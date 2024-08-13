@@ -1,92 +1,127 @@
 package com.borschevski.georegistry.service;
 
+import com.borschevski.georegistry.entity.Obec;
+import com.borschevski.georegistry.repository.ObecRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import org.springframework.transaction.annotation.Transactional;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.function.Consumer;
 
 @Slf4j
 @Service
 public class XMLParserService {
 
+    private final ObecRepository obecRepository;
+
+    public XMLParserService(ObecRepository obecRepository) {
+        this.obecRepository = obecRepository;
+    }
+
+    /**
+     * Parses the provided XML file and saves the extracted Obec entities to the database.
+     *
+     * @param xmlFile The XML file to be parsed.
+     * @throws IllegalArgumentException if the file does not exist.
+     * @throws RuntimeException if there is an error during XML processing.
+     */
     public void parseAndSave(File xmlFile) {
-        log.info("Starting to parse the XML file: {}", xmlFile.getAbsolutePath());
+        XMLInputFactory factory = XMLInputFactory.newInstance();
 
-        try {
-            Document document = parseXMLFile(xmlFile);
-            NodeList obecList = document.getElementsByTagName("vf:Obec");
-            NodeList castObceList = document.getElementsByTagName("vf:CastObce");
+        try (FileInputStream fileInputStream = new FileInputStream(xmlFile)) {
+            XMLStreamReader reader = factory.createXMLStreamReader(fileInputStream);
 
-            parseAndSaveObec(obecList);
-            parseAndSaveCastObce(castObceList);
+            while (reader.hasNext()) {
+                int event = reader.next();
 
-            log.info("Successfully parsed and saved data from the XML file: {}", xmlFile.getAbsolutePath());
-        } catch (Exception e) {
-            log.error("Failed to parse the XML file: {}. Error: {}", xmlFile.getAbsolutePath(), e.getMessage(), e);
+                if (event == XMLStreamConstants.START_ELEMENT) {
+                    processStartElement(reader);
+                }
+            }
+        } catch (FileNotFoundException e) {
+            log.error("File not found: {}", xmlFile.getPath(), e);
+            throw new IllegalArgumentException("Provided file does not exist.", e);
+        } catch (XMLStreamException | IOException e) {
+            log.error("Error processing XML file: {}", xmlFile.getPath(), e);
+            throw new RuntimeException("Error processing XML file", e);
         }
     }
 
-    private Document parseXMLFile(File xmlFile) throws Exception {
-        log.debug("Initializing XML DocumentBuilder for file: {}", xmlFile.getAbsolutePath());
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(xmlFile);
-        document.getDocumentElement().normalize();
-        log.debug("XML Document successfully parsed and normalized.");
-        return document;
+    /**
+     * Processes a start element, specifically looking for "Obec" elements and extracts data.
+     *
+     * @param reader The XMLStreamReader currently being used for reading the XML file.
+     * @throws XMLStreamException if an error occurs during XML processing.
+     */
+    private void processStartElement(XMLStreamReader reader) throws XMLStreamException {
+        if (!isStartElementWithName(reader)) return;
+
+        Obec obec = new Obec();
+        boolean foundKod = false, foundNazev = false;
+
+        while (reader.hasNext() && !(foundKod && foundNazev)) {
+            if (reader.next() == XMLStreamConstants.START_ELEMENT) {
+                foundKod = parseKodElement(reader, obec::setKod);
+                foundNazev = parseElement(reader, obec::setNazev);
+            }
+            if (endOfElement(reader)) break;
+        }
+
+        if (foundKod && foundNazev) saveObec(obec);
     }
 
-    private void parseAndSaveObec(NodeList obecList) {
-        log.debug("Parsing and saving 'Obec' elements.");
-
-        for (int i = 0; i < obecList.getLength(); i++) {
-            Element obecElement = (Element) obecList.item(i);
-
-            NodeList kodNodeList = obecElement.getElementsByTagName("vf:Kod");
-            NodeList nazevNodeList = obecElement.getElementsByTagName("vf:Nazev");
-
-            if (kodNodeList == null || kodNodeList.getLength() == 0) {
-                log.warn("Element <vf:Kod> not found in <vf:Obec> at index {}", i);
-                continue;
+    @Transactional
+    public void saveObec(@NotNull Obec currentObec) {
+        if (currentObec.getKod() != null) {
+            if (obecRepository.existsById(currentObec.getKod())) {
+                log.info("Updating existing entity: {}", currentObec);
+            } else {
+                log.info("Creating new entity: {}", currentObec);
             }
-
-            if (nazevNodeList == null || nazevNodeList.getLength() == 0) {
-                log.warn("Element <vf:Nazev> not found in <vf:Obec> at index {}", i);
-                continue;
-            }
-
-            String kod = kodNodeList.item(0) != null ? kodNodeList.item(0).getTextContent() : null;
-            String nazev = nazevNodeList.item(0) != null ? nazevNodeList.item(0).getTextContent() : null;
-
-            if (kod == null || nazev == null) {
-                log.error("Failed to parse 'Obec' element at index {}. Kod or Nazev is null.", i);
-                continue;
-            }
-
-            log.info("Saving 'Obec' - Kod: {}, Nazev: {}", kod, nazev);
-
-//            Obec obec = new Obec();
-//            obec.setKod(Integer.parseInt(kod));
-//            obec.setNazev(nazev);
-//            databaseService.saveObec(obec);
+        } else {
+            log.info("Saving new entity without kod: {}", currentObec);
         }
+        obecRepository.save(currentObec);
     }
 
+    private boolean isStartElementWithName(@NotNull XMLStreamReader reader) {
+        return reader.getPrefix().equals("vf") && reader.getLocalName().equals("Obec");
+    }
 
-    private void parseAndSaveCastObce(NodeList castObceList) {
-        log.debug("Parsing and saving 'CastObce' elements.");
-        for (int i = 0; i < castObceList.getLength(); i++) {
-            Element castObceElement = (Element) castObceList.item(i);
-            String kod = castObceElement.getElementsByTagName("vf:Kod").item(0).getTextContent();
-            String nazev = castObceElement.getElementsByTagName("vf:Nazev").item(0).getTextContent();
-            String kodObec = castObceElement.getElementsByTagName("vf:KodObec").item(0).getTextContent();
-            log.info("Saving 'CastObce' - Kod: {}, Nazev: {}, Obec Kod: {}", kod, nazev, kodObec);
-            // Save cast obce to the database
+    private boolean parseElement(@NotNull XMLStreamReader reader, Consumer<String> setter) throws XMLStreamException {
+        if (reader.getPrefix().equals("obi") && reader.getLocalName().equals("Nazev")) {
+            setter.accept(reader.getElementText().trim());
+            return true;
         }
+        return false;
+    }
+
+    private boolean parseKodElement(@NotNull XMLStreamReader reader, Consumer<Integer> setter) throws XMLStreamException {
+        if (reader.getPrefix().equals("obi") && reader.getLocalName().equals("Kod")) {
+            String text = reader.getElementText().trim();
+            try {
+                Integer value = Integer.valueOf(text);
+                setter.accept(value);
+            } catch (NumberFormatException e) {
+                log.error("Failed to parse 'kod' as integer: {}", text, e);
+                return false; // Return false if parsing fails
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private boolean endOfElement(@NotNull XMLStreamReader reader) {
+        return reader.getEventType() == XMLStreamConstants.END_ELEMENT &&
+                reader.getLocalName().equals("Obec") && reader.getPrefix().equals("vf");
     }
 }

@@ -1,8 +1,6 @@
 package com.borschevski.georegistry.service;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 

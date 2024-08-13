@@ -1,19 +1,20 @@
 package com.borschevski.georegistry.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
+@Table("obec")
 public class Obec {
     @Id
-    private int kod;
+    private Integer id;
+    private Integer kod;
     private String nazev;
 
-    public int getKod() {
+    public Integer getKod() {
         return kod;
     }
 
-    public void setKod(int kod) {
+    public void setKod(Integer kod) {
         this.kod = kod;
     }
 

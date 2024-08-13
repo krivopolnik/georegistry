@@ -29,10 +29,18 @@ public class FileDownloadService {
      * @throws IOException if an error occurs while loading or saving a file
      */
     public void downloadFile(String urlString, Path destPath) throws IOException {
-        log.info("Starting download of file from URL: {}", urlString);
 
         try {
-            URL url = urlFactory.createURL(urlString);
+            final URL url = urlFactory.createURL(urlString);
+
+            // Ensure the directory for the destination path exists
+            final Path parentDir = destPath.getParent();
+            if (parentDir != null && !Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+                log.info("Created directory {}", parentDir);
+            }
+
+            // Open a stream to the URL and download the file
             try (InputStream in = url.openStream()) {
                 Files.copy(in, destPath, StandardCopyOption.REPLACE_EXISTING);
                 log.info("File successfully downloaded and saved to {}", destPath);
@@ -41,8 +49,11 @@ public class FileDownloadService {
                 throw new IOException("Failed to download the file: " + urlString, e);
             }
         } catch (MalformedURLException e) {
-            log.error("Invalid URL: {}", urlString, e);
-            throw new IOException("Invalid URL: " + urlString, e);
+            log.error("Invalid URL: {}. Error: {}", urlString, e.getMessage());
+            throw new MalformedURLException("Invalid URL: " + urlString);
+        } catch (IOException e) {
+            log.error("Failed to handle file operations for URL: {}. Error: {}", urlString, e.getMessage());
+            throw new IOException("Failed to handle file operations for URL: " + urlString, e);
         }
     }
 }
