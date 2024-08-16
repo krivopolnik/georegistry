@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+    <session-factory>
+        <!-- Database connection settings -->
+        <property name="hibernate.connection.driver_class">org.postgresql.Driver</property>
+        <property name="hibernate.connection.url">jdbc:postgresql://localhost:5432/georegistry_db</property>
+        <property name="hibernate.connection.username">georegistry_user</property>
+        <property name="hibernate.connection.password">password</property>
+
+        <!-- Dialect configuration -->
+        <property name="hibernate.dialect">org.hibernate.dialect.PostgreSQLDialect</property>
+
+        <!-- Schema management -->
+        <property name="hibernate.hbm2ddl.auto">update</property>
+
+        <!-- Display SQL queries in logs -->
+        <property name="hibernate.show_sql">true</property>
+
+        <!-- Format SQL -->
+        <property name="hibernate.format_sql">true</property>
+
+        <!-- Configure open-in-view to be disabled (not directly applicable in Hibernate, for Spring use) -->
+        <!-- This setting does not directly translate to Hibernate as it is a Spring-specific property.
+             However, ensuring this is set in Spring Boot application helps control session management better. -->
+
+        <!-- Define entity mappings -->
+        <mapping class="com.borschevski.georegistry.entity.Obec"/>
+        <mapping class="com.borschevski.georegistry.entity.CastObce"/>
+    </session-factory>
+</hibernate-configuration>

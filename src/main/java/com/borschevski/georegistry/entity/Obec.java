@@ -1,14 +1,40 @@
 package com.borschevski.georegistry.entity;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Table;
+import jakarta.persistence.Column;
+import org.hibernate.annotations.CreationTimestamp; // Correct annotation for Hibernate to handle created date automatically
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import java.util.Date;
 
-@Table("obec")
+@Entity
+@Table(name = "obec")
 public class Obec {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Specifies the generation strategy for the primary key
     private Integer id;
+
+    @Column(unique = true) // Ensures that the 'kod' column is unique within the database
     private Integer kod;
+
     private String nazev;
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_date")
+    private Date createdDate;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public Integer getKod() {
         return kod;

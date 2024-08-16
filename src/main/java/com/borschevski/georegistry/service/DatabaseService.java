@@ -6,6 +6,7 @@ import com.borschevski.georegistry.repository.ObecRepository;
 import com.borschevski.georegistry.repository.CastObceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,14 +20,17 @@ public class DatabaseService {
     private final CastObceRepository castObceRepository;
 
     @Transactional
-    public void saveObec(Obec obec) {
-        try {
-            obecRepository.save(obec);
-            log.info("Successfully saved 'Obec' with Kod: {} and Nazev: {}", obec.getKod(), obec.getNazev());
-        } catch (DataAccessException e) {
-            log.error("Failed to save 'Obec' with Kod: {} and Nazev: {}. Error: {}", obec.getKod(), obec.getNazev(), e.getMessage(), e);
-            throw e; // Rethrow to trigger transaction rollback if needed
+    public void saveObec(@NotNull Obec currentObec) {
+        if (currentObec.getKod() != null) {
+            if (obecRepository.existsById(currentObec.getKod())) {
+                log.info("Updating existing entity: {}", currentObec);
+            } else {
+                log.info("Creating new entity: {}", currentObec);
+            }
+        } else {
+            log.info("Saving new entity without kod: {}", currentObec);
         }
+        obecRepository.save(currentObec);
     }
 
     @Transactional

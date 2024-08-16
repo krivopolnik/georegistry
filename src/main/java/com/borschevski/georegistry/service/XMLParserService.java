@@ -1,11 +1,9 @@
 package com.borschevski.georegistry.service;
 
 import com.borschevski.georegistry.entity.Obec;
-import com.borschevski.georegistry.repository.ObecRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
@@ -21,10 +19,16 @@ import java.util.function.Consumer;
 @Service
 public class XMLParserService {
 
-    private final ObecRepository obecRepository;
+    private final String OBI_PREFIX = "obi";
+    private final String VF_PREFIX = "vf";
+    private final String OBEC_ELEMENT = "Obec";
+    private final String KOD_ELEMENT = "Kod";
+    private final String NAZEV_ELEMENT = "Nazev";
 
-    public XMLParserService(ObecRepository obecRepository) {
-        this.obecRepository = obecRepository;
+    private final DatabaseService databaseService;
+
+    public XMLParserService(DatabaseService databaseService) {
+        this.databaseService = databaseService;
     }
 
     /**
@@ -63,38 +67,40 @@ public class XMLParserService {
      * @throws XMLStreamException if an error occurs during XML processing.
      */
     private void processStartElement(XMLStreamReader reader) throws XMLStreamException {
-        if (!isStartElementWithName(reader)) return;
+        if (!isStartElementWithName(reader, VF_PREFIX, OBEC_ELEMENT)) return;
 
         Obec obec = new Obec();
         boolean foundKod = false, foundNazev = false;
 
-        while (reader.hasNext() && !(foundKod && foundNazev)) {
-            if (reader.next() == XMLStreamConstants.START_ELEMENT) {
-                foundKod = parseKodElement(reader, obec::setKod);
-                foundNazev = parseElement(reader, obec::setNazev);
+        while (reader.hasNext()) {
+            int event = reader.next();
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                if (reader.getLocalName().equals(KOD_ELEMENT) && reader.getPrefix().equals(OBI_PREFIX)) {
+                    foundKod = parseKodElement(reader, obec::setKod);
+                } else if (reader.getLocalName().equals(NAZEV_ELEMENT) && reader.getPrefix().equals(OBI_PREFIX)) {
+                    foundNazev = parseElement(reader, obec::setNazev);
+                }
             }
-            if (endOfElement(reader)) break;
+            if (event == XMLStreamConstants.END_ELEMENT && isEndElementWithName(reader, VF_PREFIX, OBEC_ELEMENT)) {
+                break;
+            }
         }
 
-        if (foundKod && foundNazev) saveObec(obec);
-    }
-
-    @Transactional
-    public void saveObec(@NotNull Obec currentObec) {
-        if (currentObec.getKod() != null) {
-            if (obecRepository.existsById(currentObec.getKod())) {
-                log.info("Updating existing entity: {}", currentObec);
-            } else {
-                log.info("Creating new entity: {}", currentObec);
-            }
-        } else {
-            log.info("Saving new entity without kod: {}", currentObec);
+        if (foundKod && foundNazev) {
+            databaseService.saveObec(obec);
         }
-        obecRepository.save(currentObec);
     }
 
-    private boolean isStartElementWithName(@NotNull XMLStreamReader reader) {
-        return reader.getPrefix().equals("vf") && reader.getLocalName().equals("Obec");
+    private boolean isStartElementWithName(@NotNull XMLStreamReader reader, String prefix, String localName) {
+        return reader.getEventType() == XMLStreamConstants.START_ELEMENT &&
+                reader.getPrefix().equals(prefix) &&
+                reader.getLocalName().equals(localName);
+    }
+
+    private boolean isEndElementWithName(@NotNull XMLStreamReader reader, String prefix, String localName) {
+        return reader.getEventType() == XMLStreamConstants.END_ELEMENT &&
+                reader.getPrefix().equals(prefix) &&
+                reader.getLocalName().equals(localName);
     }
 
     private boolean parseElement(@NotNull XMLStreamReader reader, Consumer<String> setter) throws XMLStreamException {
