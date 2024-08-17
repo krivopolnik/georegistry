@@ -1,7 +1,4 @@
-Here is the entire text of your `README.md` file translated into English and formatted for a polished and professional presentation on GitHub:
-
-```markdown
-# GeoRegistry
+### GeoRegistry
 
 **GeoRegistry** is an application designed for downloading and storing geographical data. This console application provides an API for managing data about geographical entities. **GeoRegistry** automatically downloads XML files, extracts them, and stores the data in a PostgreSQL database. The application generates two Docker containers: one for the Java application and another for the PostgreSQL server.
 
