@@ -103,4 +103,3 @@ Once the application is up and running, you can verify that it is functioning co
    ```
 
 These steps will help you confirm that the GeoRegistry application is properly downloading and storing data as expected.
-```
