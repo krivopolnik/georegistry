@@ -5,7 +5,6 @@ FROM amazoncorretto:21
 WORKDIR /app
 
 # Copy the JAR file from your host machine into the container
-# Assume Dockerfile is in the same directory as the `target` directory
 COPY target/georegistry-0.0.1-SNAPSHOT.jar /app/georegistry.jar
 
 # Command to run the application
