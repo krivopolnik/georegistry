@@ -48,6 +48,6 @@ Before launching, ensure that the configuration files in `src/main/resources` ar
 
 After launching, the application will be accessible at `http://localhost:8081/`. Use the following command to activate the main functionality:
 
-```http
+```curl http
 http://localhost:8081/download-and-parse
 ```
