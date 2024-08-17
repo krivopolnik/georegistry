@@ -50,3 +50,57 @@ After launching, the application will be accessible at `http://localhost:8081/`.
 ```bash
 curl http://localhost:8081/download-and-parse
 ```
+
+### Verifying Application Functionality
+
+Once the application is up and running, you can verify that it is functioning correctly by following these steps:
+
+1. **Test Data Download and Parsing**:
+   Execute the following command to initiate the data download and parsing process:
+   ```bash
+   curl http://localhost:8081/download-and-parse
+   ```
+   You should see a response indicating that the data has been successfully downloaded and parsed:
+   ```
+   Data successfully downloaded and parsed!
+   ```
+
+2. **Check Database Entries**:
+   Connect to the PostgreSQL database to ensure that the data has been properly stored. Use the following command to log in to your PostgreSQL server:
+   ```bash
+   psql -h localhost -p 5432 -U georegistry_user -d georegistry_db
+   ```
+   After logging in (you’ll be prompted for the password), you can check the contents of the tables to verify that the entries have been created successfully:
+   ```sql
+   \dt  # List all tables in the database
+
+   # Check entries in the 'obec' table
+   SELECT * FROM obec;
+
+   # Check entries in the 'cast_obce' table
+   SELECT * FROM cast_obce;
+   ```
+
+   Here is an example of what the output might look like:
+   ```
+   List of relations
+    Schema |   Name    | Type  |      Owner       
+   --------+-----------+-------+------------------
+    public | obec      | table | georegistry_user
+    public | cast_obce | table | georegistry_user
+
+   id |  kod   |  nazev   |      created_date       
+   ----+--------+----------+-------------------------
+    1  | 573060 | Kopidlno | 2024-08-17 15:38:53.603
+
+   id |  kod  |  nazev   |      created_date       | obec_kod 
+   ----+-------+----------+-------------------------+----------
+    1  | 69299 | Kopidlno | 2024-08-17 15:38:53.642 |   573060
+    2  | 69302 | Ledkov   | 2024-08-17 15:38:53.647 |   573060
+    3  | 97373 | Mlýnec   | 2024-08-17 15:38:53.651 |   573060
+    4  | 31801 | Drahoraz | 2024-08-17 15:38:53.655 |   573060
+    5  | 31828 | Pševes   | 2024-08-17 15:38:53.659 |   573060
+   ```
+
+These steps will help you confirm that the GeoRegistry application is properly downloading and storing data as expected.
+```
