@@ -9,6 +9,6 @@ CREATE TABLE IF NOT EXISTS cast_obce (
     id SERIAL PRIMARY KEY,
     kod INTEGER,
     nazev VARCHAR(255) NOT NULL,
-    createdDate TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_date TIMESTAMP,
     obec_kod INTEGER REFERENCES obec(kod) ON DELETE CASCADE
 );

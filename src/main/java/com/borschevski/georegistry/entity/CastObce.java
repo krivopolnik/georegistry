@@ -1,11 +1,9 @@
 package com.borschevski.georegistry.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.Column;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.util.Date;
 
 @Entity
 @Table(name = "cast_obce")
@@ -19,10 +17,13 @@ public class CastObce {
 
     private String nazev;
 
-    @Column(name = "kod_obec")
-    private Integer kodObec;
+    private Integer obecKod;
 
-    // Getters and Setters
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_date")
+    private Date createdDate;
+
     public Integer getId() {
         return id;
     }
@@ -47,11 +48,11 @@ public class CastObce {
         this.nazev = nazev;
     }
 
-    public Integer getKodObec() {
-        return kodObec;
+    public Integer getObecKod() {
+        return obecKod;
     }
 
-    public void setKodObec(Integer kodObec) {
-        this.kodObec = kodObec;
+    public void setObecKod(Integer obecKod) {
+        this.obecKod = obecKod;
     }
 }

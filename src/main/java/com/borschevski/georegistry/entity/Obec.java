@@ -1,7 +1,7 @@
 package com.borschevski.georegistry.entity;
 
 import jakarta.persistence.Column;
-import org.hibernate.annotations.CreationTimestamp; // Correct annotation for Hibernate to handle created date automatically
+import org.hibernate.annotations.CreationTimestamp;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,10 +15,10 @@ import java.util.Date;
 @Table(name = "obec")
 public class Obec {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Specifies the generation strategy for the primary key
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(unique = true) // Ensures that the 'kod' column is unique within the database
+    @Column(unique = true)
     private Integer kod;
 
     private String nazev;

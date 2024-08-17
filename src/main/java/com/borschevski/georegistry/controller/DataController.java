@@ -15,6 +15,9 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.UUID;
 
+/**
+ * Controller to manage the download and parsing of XML files.
+ */
 @Slf4j
 @RestController
 public class DataController {
@@ -41,7 +44,7 @@ public class DataController {
     @GetMapping("/download-and-parse")
     public String downloadAndParse() {
         final String uniqueId = UUID.randomUUID().toString();
-        final Path zipPath = Paths.get(downloadPath, "kopidlno-" + uniqueId + ".xml.zip");
+        final Path zipPath = Paths.get(downloadPath, "data-" + uniqueId + ".zip");
         final Path unzipDir = Paths.get(unzipPath, uniqueId);
 
         try {
@@ -53,10 +56,7 @@ public class DataController {
             log.info("Unzipping file: {}", zipPath);
             fileUnzipService.unzipFile(zipPath, unzipDir);
 
-            final Path xmlFile = Files.list(unzipDir)
-                    .filter(path -> path.toString().endsWith(".xml"))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("No XML file found in the unzipped content"));
+            Path xmlFile = findXmlFile(unzipDir);
 
             log.info("Parsing XML file: {}", xmlFile);
             xmlParsingService.parseAndSave(xmlFile.toFile());
@@ -67,18 +67,29 @@ public class DataController {
             log.error("Failed to download and parse data: {}", e.getMessage(), e);
             return "Failed to download and parse data: " + e.getMessage();
         } finally {
-            try {
-                Files.walk(unzipDir)
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(file -> {
-                            if (!file.delete()) {
-                                log.warn("Failed to delete file: {}", file);
-                            }
-                        });
-            } catch (IOException e) {
-                log.error("Failed to clean up temporary files: {}", e.getMessage(), e);
-            }
+            cleanUpTemporaryFiles(unzipDir);
+        }
+    }
+
+    private Path findXmlFile(Path directory) throws IOException {
+        return Files.walk(directory)
+                .filter(path -> path.toString().endsWith(".xml"))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No XML file found in the unzipped content"));
+    }
+
+    private void cleanUpTemporaryFiles(Path directory) {
+        try {
+            Files.walk(directory)
+                    .sorted(Comparator.reverseOrder())
+                    .map(Path::toFile)
+                    .forEach(file -> {
+                        if (!file.delete()) {
+                            log.warn("Failed to delete file: {}", file);
+                        }
+                    });
+        } catch (IOException e) {
+            log.error("Failed to clean up temporary files: {}", e.getMessage(), e);
         }
     }
 }
