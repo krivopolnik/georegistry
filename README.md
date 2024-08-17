@@ -45,9 +45,8 @@ mvn -version   # check the Maven version
 Before launching, ensure that the configuration files in `src/main/resources` are correctly set up for your environment. This may include database settings, security parameters, and other environment variables.
 
 ## Usage
+After launching, the application will be accessible at `http://localhost:8081/`. To activate the main functionality, use the following curl command:
 
-After launching, the application will be accessible at `http://localhost:8081/`. Use the following command to activate the main functionality:
-
-```curl http
-http://localhost:8081/download-and-parse
+```bash
+curl http://localhost:8081/download-and-parse
 ```
