@@ -8,16 +8,10 @@ These instructions will help you set up a copy of the project for development an
 
 ### Prerequisites
 
-You will need the following tools to run the project:
-
-- **Java 21**: Ensure you have the required version of Java installed.
-- **Docker**: Necessary for managing the application and database containers.
-- **Maven**: Required for building the project.
+You will need Docker to run the project. Docker will handle the installation of Java, Maven, and other dependencies:
 
 ```bash
-java -version  # check the installed version of Java
 docker -v      # check the Docker version
-mvn -version   # check the Maven version
 ```
 
 ### Installation and Build
@@ -28,13 +22,8 @@ mvn -version   # check the Maven version
    cd georegistry
    ```
 
-2. **Building the Project**
-   Before running Docker, you need to build the `.jar` file of the project:
-   ```bash
-   mvn clean install -DskipTests
-   ```
-
-3. **Launching with Docker**
+2. **Launching with Docker**
+   Docker will handle the building and deployment of the application:
    ```bash
    cd src/docker
    docker-compose up --build
@@ -102,4 +91,12 @@ Once the application is up and running, you can verify that it is functioning co
     5  | 31828 | Pševes   | 2024-08-17 15:38:53.659 |   573060
    ```
 
-These steps will help you confirm that the GeoRegistry application is properly downloading and storing data as expected.
+### Routine Maintenance
+
+Periodically, it's a good idea to clean up your Docker environment to ensure that your system is not cluttered with unused Docker volumes, networks, or containers. To do this, you can use the `docker-compose down` command, which stops and removes the containers, default network, and the images used by your application:
+
+```bash
+docker-compose down
+```
+
+This will help maintain a clean development environment and prevent potential conflicts or resource issues on your machine.
