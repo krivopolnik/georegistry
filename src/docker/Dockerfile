@@ -1,12 +1,18 @@
-# Use the official Amazon Corretto image as a parent image
-FROM amazoncorretto:21
-
-# Set the working directory inside the container
+# Stage 1: Build the application
+FROM maven:3.9.8-eclipse-temurin-21-alpine AS build
 WORKDIR /app
+# Copy only pom.xml initially to leverage Docker cache
+COPY ../pom.xml /app
+# Install dependencies
+RUN mvn dependency:go-offline
+# Copy the rest of your project
+COPY ../src /app/src
+# Build the application
+RUN mvn clean package -DskipTests
 
-# Copy the JAR file from your host machine into the container
-# Assume Dockerfile is in the same directory as the `target` directory
-COPY target/georegistry-0.0.1-SNAPSHOT.jar /app/georegistry.jar
-
-# Command to run the application
+# Stage 2: Run the application
+FROM amazoncorretto:21-alpine-jdk
+WORKDIR /app
+# Copy only the built JAR from the build stage
+COPY --from=build /app/target/georegistry-0.0.1-SNAPSHOT.jar /app/georegistry.jar
 CMD ["java", "-jar", "/app/georegistry.jar"]

@@ -14,7 +14,9 @@ services:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
 
   app:
-    build: .
+    build:
+      context: ../../
+      dockerfile: src/docker/Dockerfile
     container_name: georegistry_app
     ports:
       - "8081:8081"
